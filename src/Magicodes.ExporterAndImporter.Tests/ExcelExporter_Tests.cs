@@ -351,7 +351,69 @@ namespace Magicodes.ExporterAndImporter.Tests
             }
 
         }
+        [Fact(DisplayName = "多个sheet导出(自定义sheet名字)")]
+        public async Task ExportMutiCollectionWithCustomizeSheetName_Test()
+        {
+            var exporter = new ExcelExporter();
 
+            var filePath = GetTestFilePath($"{nameof(ExportMutiCollectionWithCustomizeSheetName_Test)}.xlsx");
+
+            DeleteFile(filePath);
+
+            var c1 = GenFu.GenFu.ListOf<ExportTestDataWithAttrs>();
+
+            var c2 = GenFu.GenFu.ListOf<ExportTestDataWithAttrs>();
+            //导出同一类型的Collection
+            var result = exporter.Append(c1).Append(c2).ExportAppendData(filePath);
+            result.ShouldNotBeNull();
+            File.Exists(filePath).ShouldBeTrue();
+
+            using (var pck = new ExcelPackage(new FileInfo(filePath)))
+            {
+                pck.Workbook.Worksheets.Count.ShouldBe(2);
+                pck.Workbook.Worksheets.First().Name.ShouldBe(typeof(ExportTestDataWithAttrs).GetAttribute<ExcelExporterAttribute>().Name);
+                pck.Workbook.Worksheets.Last().Name.ShouldBe(typeof(ExportTestDataWithAttrs).GetAttribute<ExcelExporterAttribute>().Name + "-1");
+            }
+
+            DeleteFile(filePath);
+
+            exporter = new ExcelExporter();
+            //c1自定义sheetname，c2读取ExcelExporterAttribute定义的名字
+            result = exporter.Append(c1, "自定义的sheet名字").Append(c2).ExportAppendData(filePath);
+            result.ShouldNotBeNull();
+            File.Exists(filePath).ShouldBeTrue();
+
+            using (var pck = new ExcelPackage(new FileInfo(filePath)))
+            {
+                pck.Workbook.Worksheets.Count.ShouldBe(2);
+                pck.Workbook.Worksheets.First().Name.ShouldBe("自定义的sheet名字");
+                pck.Workbook.Worksheets.Last().Name.ShouldBe(typeof(ExportTestDataWithAttrs).GetAttribute<ExcelExporterAttribute>().Name);
+            }
+
+
+
+            DeleteFile(filePath);
+
+            exporter = new ExcelExporter();
+
+            var list2 = GenFu.GenFu.ListOf<ExportTestDataWithSplitSheet>(30);
+
+
+            var list2SheetName = typeof(ExportTestDataWithSplitSheet).GetAttribute<ExcelExporterAttribute>().Name;
+
+            //c1自定义名字和list2的ExcelExporterAttribute定义名字相同
+            result = exporter.Append(c1, list2SheetName).Append(list2).ExportAppendData(filePath);
+            result.ShouldNotBeNull();
+            File.Exists(filePath).ShouldBeTrue();
+
+            using (var pck = new ExcelPackage(new FileInfo(filePath)))
+            {
+                pck.Workbook.Worksheets.Count.ShouldBe(2);
+                pck.Workbook.Worksheets.First().Name.ShouldBe(list2SheetName);
+                pck.Workbook.Worksheets.Last().Name.ShouldBe(list2SheetName + "-1");
+            }
+
+        }
 
         [Fact(DisplayName = "通过Dto导出表头")]
         public async Task ExportHeaderAsByteArray_Test()

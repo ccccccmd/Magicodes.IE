@@ -45,8 +45,9 @@ namespace Magicodes.ExporterAndImporter.Excel
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataItems"></param>
+        /// <param name="sheetName"></param>
         /// <returns></returns>
-        ExcelExporter Append<T>(ICollection<T> dataItems) where T : class;
+        ExcelExporter Append<T>(ICollection<T> dataItems,string sheetName="") where T : class;
 
 
 

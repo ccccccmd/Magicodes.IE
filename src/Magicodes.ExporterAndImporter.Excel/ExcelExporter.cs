@@ -55,17 +55,19 @@ namespace Magicodes.ExporterAndImporter.Excel
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataItems"></param>
+        /// <param name="sheetName">导出时表格名字，为空时使用ExcelExporterAttribute定义的名字</param>
         /// <returns></returns>
-        public ExcelExporter Append<T>(ICollection<T> dataItems) where T : class
+        public ExcelExporter Append<T>(ICollection<T> dataItems, string sheetName = "") where T : class
         {
 
             var helper = this._excelPackage == null ? new ExportHelper<T>() : new ExportHelper<T>(_excelPackage);
-            var sheetName = helper.ExcelExporterSettings?.Name ?? "导出结果";
-
-            if (this._excelPackage?.Workbook.Worksheets.Any(x => x.Name == sheetName) ?? false)
+            if (string.IsNullOrWhiteSpace(sheetName))
             {
-                throw new ArgumentNullException($"已经存在名字为{sheetName}的sheet");
+                sheetName = helper.ExcelExporterSettings?.Name ?? "导出结果";
             }
+
+            var sameSheetNameCount = this._excelPackage?.Workbook.Worksheets.Count(x => x.Name == sheetName) ?? 0;
+            helper.AddExcelWorksheet(sameSheetNameCount == 0 ? sheetName : $"{sheetName}-{sameSheetNameCount}");
             this._excelPackage = helper.Export(dataItems);
 
             return this;
